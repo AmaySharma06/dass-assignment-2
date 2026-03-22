@@ -14,6 +14,10 @@ from .inventory import (
     InsufficientFundsError, ItemNotFoundError,
     InventoryModule
 )
+from .race_management import (
+    RaceStatus, Race, RaceEntry, RaceManagementError,
+    InvalidEntryError, RaceNotFoundError, RaceManagementModule
+)
 
 __all__ = [
     'Role', 'CrewMember', 'RegistrationModule',
@@ -21,4 +25,6 @@ __all__ = [
     'MemberNotFoundError', 'InvalidRoleError',
     'CarCondition', 'Car', 'SparePart', 'Tool',
     'InsufficientFundsError', 'ItemNotFoundError', 'InventoryModule',
+    'RaceStatus', 'Race', 'RaceEntry', 'RaceManagementError',
+    'InvalidEntryError', 'RaceNotFoundError', 'RaceManagementModule',
 ]
