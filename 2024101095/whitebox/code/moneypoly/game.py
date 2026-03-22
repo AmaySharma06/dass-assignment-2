@@ -375,7 +375,7 @@ class Game:
 
         winner = self.find_winner()
         if winner:
-            ui.print_banner(f"GAME OVER")
+            ui.print_banner("GAME OVER")
             print(f"\n  {winner.name} wins with a net worth of ${winner.net_worth()}!\n")
         else:
             print("\n  The game ended with no players remaining.")
@@ -447,7 +447,7 @@ class Game:
         for i, p in enumerate(others):
             print(f"  {i + 1}. {p.name}  (${p.balance})")
         idx = ui.safe_int_input("  Trade with: ", default=0) - 1
-        if not (0 <= idx < len(others)):
+        if not 0 <= idx < len(others):
             return
         partner = others[idx]
         if not player.properties:
@@ -456,7 +456,7 @@ class Game:
         for i, prop in enumerate(player.properties):
             print(f"  {i + 1}. {prop.name}")
         pidx = ui.safe_int_input("  Property to offer: ", default=0) - 1
-        if not (0 <= pidx < len(player.properties)):
+        if not 0 <= pidx < len(player.properties):
             return
         chosen_prop = player.properties[pidx]
         cash = ui.safe_int_input(
