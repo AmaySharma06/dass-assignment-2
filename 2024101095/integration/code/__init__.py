@@ -5,7 +5,13 @@ Exports all modules for easy import.
 """
 
 from .registration import Role, CrewMember, RegistrationModule
+from .crew_management import (
+    CrewManagementModule, CrewManagementError,
+    MemberNotFoundError, InvalidRoleError
+)
 
 __all__ = [
     'Role', 'CrewMember', 'RegistrationModule',
+    'CrewManagementModule', 'CrewManagementError',
+    'MemberNotFoundError', 'InvalidRoleError',
 ]
