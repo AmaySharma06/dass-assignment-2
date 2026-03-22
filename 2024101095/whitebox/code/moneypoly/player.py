@@ -14,8 +14,8 @@ class Player:
         self.properties = []
         self.jail_info = {
             "in_jail": False,
-            "turns": 0,
-            "get_out_cards": 0
+            "jail_turns": 0,
+            "get_out_of_jail_cards": 0
         }
         self.is_eliminated = False
 
@@ -58,7 +58,7 @@ class Player:
         """Send this player directly to the Jail square."""
         self.position = JAIL_POSITION
         self.jail_info["in_jail"] = True
-        self.jail_info["turns"] = 0
+        self.jail_info["jail_turns"] = 0
 
 
     def add_property(self, prop):
