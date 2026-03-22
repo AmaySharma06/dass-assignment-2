@@ -9,9 +9,16 @@ from .crew_management import (
     CrewManagementModule, CrewManagementError,
     MemberNotFoundError, InvalidRoleError
 )
+from .inventory import (
+    CarCondition, Car, SparePart, Tool,
+    InsufficientFundsError, ItemNotFoundError,
+    InventoryModule
+)
 
 __all__ = [
     'Role', 'CrewMember', 'RegistrationModule',
     'CrewManagementModule', 'CrewManagementError',
     'MemberNotFoundError', 'InvalidRoleError',
+    'CarCondition', 'Car', 'SparePart', 'Tool',
+    'InsufficientFundsError', 'ItemNotFoundError', 'InventoryModule',
 ]
