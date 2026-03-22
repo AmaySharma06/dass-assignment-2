@@ -24,6 +24,10 @@ from .mission_planning import (
     MissionError, RoleUnavailableError, MissionNotFoundError,
     MissionPlanningModule, MISSION_REQUIREMENTS
 )
+from .leaderboard import (
+    LeaderboardType, TimePeriod, LeaderboardEntry, CrewPerformance,
+    Achievement, LeaderboardModule, ACHIEVEMENTS
+)
 
 __all__ = [
     'Role', 'CrewMember', 'RegistrationModule',
@@ -37,4 +41,6 @@ __all__ = [
     'MissionType', 'MissionStatus', 'Mission', 'MissionAssignment',
     'MissionError', 'RoleUnavailableError', 'MissionNotFoundError',
     'MissionPlanningModule', 'MISSION_REQUIREMENTS',
+    'LeaderboardType', 'TimePeriod', 'LeaderboardEntry', 'CrewPerformance',
+    'Achievement', 'LeaderboardModule', 'ACHIEVEMENTS',
 ]
