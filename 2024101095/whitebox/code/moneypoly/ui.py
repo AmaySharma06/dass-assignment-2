@@ -1,3 +1,4 @@
+"""Module docstring"""
 def print_banner(title):
     """Print a decorated section header."""
     width = 52

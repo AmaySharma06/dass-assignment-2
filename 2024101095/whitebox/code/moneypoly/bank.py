@@ -1,7 +1,9 @@
+"""Module docstring"""
 from moneypoly.config import BANK_STARTING_FUNDS
 
 
 class Bank:
+    """Class representing the game bank."""
     def __init__(self):
         self._funds = BANK_STARTING_FUNDS
         self._loans_issued = []

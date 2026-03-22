@@ -1,3 +1,4 @@
+"""Module docstring"""
 from moneypoly.config import (
     JAIL_FINE,
     AUCTION_MIN_INCREMENT,

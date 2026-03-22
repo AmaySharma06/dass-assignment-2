@@ -1,3 +1,4 @@
+"""Module docstring"""
 import sys
 from moneypoly.config import STARTING_BALANCE, GO_SALARY, JAIL_POSITION
 

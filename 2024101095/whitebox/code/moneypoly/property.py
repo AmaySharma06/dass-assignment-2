@@ -1,3 +1,4 @@
+"""Module docstring"""
 class Property:
     """Represents a single purchasable property tile on the MoneyPoly board."""
 
@@ -62,6 +63,7 @@ class Property:
 
 
 class PropertyGroup:
+    """Class representing a property group/color set."""
     def __init__(self, name, color):
         self.name = name
         self.color = color
