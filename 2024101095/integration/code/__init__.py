@@ -28,6 +28,10 @@ from .leaderboard import (
     LeaderboardType, TimePeriod, LeaderboardEntry, CrewPerformance,
     Achievement, LeaderboardModule, ACHIEVEMENTS
 )
+from .notifications import (
+    NotificationType, NotificationCategory, NotificationPriority,
+    Notification, NotificationPreference, NotificationsModule
+)
 
 __all__ = [
     'Role', 'CrewMember', 'RegistrationModule',
@@ -43,4 +47,6 @@ __all__ = [
     'MissionPlanningModule', 'MISSION_REQUIREMENTS',
     'LeaderboardType', 'TimePeriod', 'LeaderboardEntry', 'CrewPerformance',
     'Achievement', 'LeaderboardModule', 'ACHIEVEMENTS',
+    'NotificationType', 'NotificationCategory', 'NotificationPriority',
+    'Notification', 'NotificationPreference', 'NotificationsModule',
 ]
