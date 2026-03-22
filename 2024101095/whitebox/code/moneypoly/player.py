@@ -1,5 +1,5 @@
 import sys
-from moneypoly.config import STARTING_BALANCE, BOARD_SIZE, GO_SALARY, JAIL_POSITION
+from moneypoly.config import STARTING_BALANCE, GO_SALARY, JAIL_POSITION
 
 
 class Player:
