@@ -47,6 +47,7 @@ class Bank:
         if amount <= 0:
             return
         player.add_money(amount)
+        self._funds -= amount
         self._loans_issued.append((player.name, amount))
         print(f"  Bank issued a ${amount} emergency loan to {player.name}.")
 
