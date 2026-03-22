@@ -419,7 +419,7 @@ class TestGameMoveAndResolve:
 class TestGameJailAndTurnRegression:
     """Regression tests for jail fine handling and turn index behavior."""
 
-    @patch("moneypoly.game.ui.confirm", side_effect=[False, True])
+    @patch("moneypoly.game.ui.confirm", return_value=True)
     @patch("moneypoly.game.Dice.roll", return_value=0)
     @patch("moneypoly.game.Game._move_and_resolve")
     def test_voluntary_jail_fine_deducts_from_player(

@@ -34,7 +34,7 @@ class Player:
 
     def is_bankrupt(self):
         """Return True if this player has no money remaining."""
-        return self.balance + sum(p.economics.get('price', 0) for p in self.properties) <= 0
+        return self.balance <= 0
 
     def net_worth(self):
         """Calculate and return this player's total net worth."""
