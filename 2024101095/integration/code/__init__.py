@@ -1,6 +1,5 @@
 """
 StreetRace Manager – Code Package
-==================================
 """
 
 from .registration import Role, CrewMember, RegistrationModule
@@ -20,6 +19,11 @@ from .race_management import (
 from .results import (
     RaceOutcome, RaceResult, DriverStats, ResultsError, ResultsModule
 )
+from .mission_planning import (
+    MissionType, MissionStatus, Mission, MissionAssignment,
+    MissionError, RoleUnavailableError, MissionNotFoundError,
+    MissionPlanningModule, MISSION_REQUIREMENTS
+)
 
 __all__ = [
     'Role', 'CrewMember', 'RegistrationModule',
@@ -30,4 +34,7 @@ __all__ = [
     'RaceStatus', 'Race', 'RaceEntry', 'RaceManagementError',
     'InvalidEntryError', 'RaceNotFoundError', 'RaceManagementModule',
     'RaceOutcome', 'RaceResult', 'DriverStats', 'ResultsError', 'ResultsModule',
+    'MissionType', 'MissionStatus', 'Mission', 'MissionAssignment',
+    'MissionError', 'RoleUnavailableError', 'MissionNotFoundError',
+    'MissionPlanningModule', 'MISSION_REQUIREMENTS',
 ]
