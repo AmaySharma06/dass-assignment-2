@@ -4,15 +4,14 @@ class Property:
 
     FULL_GROUP_MULTIPLIER = 2
 
-    def __init__(self, name, position, price, base_rent, group=None):
+    def __init__(self, name, position, economics, group=None):
         self.name = name
         self.position = position
-        self.price = price
-        self.base_rent = base_rent
-        self.mortgage_value = price // 2
+        self.economics = economics
+        self.mortgage_value = self.economics.get("price", 0) // 2
         self.owner = None
         self.is_mortgaged = False
-        self.houses = 0
+        self.buildings = {"houses": 0, "hotel": 0}
 
         # Register with the group immediately on creation
         self.group = group
@@ -28,8 +27,8 @@ class Property:
         if self.is_mortgaged:
             return 0
         if self.group is not None and self.group.all_owned_by(self.owner):
-            return self.base_rent * self.FULL_GROUP_MULTIPLIER
-        return self.base_rent
+            return self.economics.get("base_rent", 0) * self.FULL_GROUP_MULTIPLIER
+        return self.economics.get("base_rent", 0)
 
     def mortgage(self):
         """
