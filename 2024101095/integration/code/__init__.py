@@ -1,7 +1,6 @@
 """
 StreetRace Manager – Code Package
 ==================================
-Exports all modules for easy import.
 """
 
 from .registration import Role, CrewMember, RegistrationModule
@@ -18,6 +17,9 @@ from .race_management import (
     RaceStatus, Race, RaceEntry, RaceManagementError,
     InvalidEntryError, RaceNotFoundError, RaceManagementModule
 )
+from .results import (
+    RaceOutcome, RaceResult, DriverStats, ResultsError, ResultsModule
+)
 
 __all__ = [
     'Role', 'CrewMember', 'RegistrationModule',
@@ -27,4 +29,5 @@ __all__ = [
     'InsufficientFundsError', 'ItemNotFoundError', 'InventoryModule',
     'RaceStatus', 'Race', 'RaceEntry', 'RaceManagementError',
     'InvalidEntryError', 'RaceNotFoundError', 'RaceManagementModule',
+    'RaceOutcome', 'RaceResult', 'DriverStats', 'ResultsError', 'ResultsModule',
 ]
