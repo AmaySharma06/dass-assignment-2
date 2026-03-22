@@ -365,7 +365,10 @@ class Game:
                 prop.is_mortgaged = False
             player.properties.clear()
             if player in self.players:
+                idx = self.players.index(player)
                 self.players.remove(player)
+                if idx <= self.state["current_index"]:
+                    self.state["current_index"] = max(0, self.state["current_index"] - 1)
             if self.state["current_index"] >= len(self.players):
                 self.state["current_index"] = 0
 
