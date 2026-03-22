@@ -328,10 +328,11 @@ class Game:
                 self._handle_property_tile(player, prop)
 
     def _card_collect_from_all(self, player, value):
-        for other in self.players:
+        for other in list(self.players):
             if other != player:
                 other.deduct_money(value)
                 player.add_money(value)
+                self._check_bankruptcy(other)
 
     def _apply_card(self, player, card):
         """Apply the effect of a drawn Chance or Community Chest card."""
