@@ -140,7 +140,7 @@ class Game:
         Purchase `prop` on behalf of `player`.
         Returns True on success, False if the player cannot afford it.
         """
-        if player.balance <= prop.economics["price"]:
+        if player.balance < prop.economics["price"]:
             print(f"  {player.name} cannot afford {prop.name} (${prop.economics["price"]}).")
             return False
         player.deduct_money(prop.economics["price"])
