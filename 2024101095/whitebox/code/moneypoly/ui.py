@@ -1,4 +1,5 @@
 """Module docstring"""
+# pylint: disable=import-error
 def print_banner(title):
     """Print a decorated section header."""
     width = 52
@@ -9,7 +10,10 @@ def print_banner(title):
 
 def print_player_card(player):
     """Print a detailed status card for a single player."""
-    jail_line = f"  Status  : IN JAIL (turn {player.jail_info["turns"]}/3)\n" if player.jail_info["in_jail"] else ""
+    jail_line = (
+        f"  Status  : IN JAIL (turn {player.jail_info['turns']}/3)\n"
+        if player.jail_info["in_jail"] else ""
+    )
     print(f"\n  Player  : {player.name}")
     print(f"  Balance : ${player.balance:,}")
     print(f"  Worth   : ${player.net_worth():,}")

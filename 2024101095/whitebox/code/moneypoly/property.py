@@ -1,4 +1,5 @@
 """Module docstring"""
+# pylint: disable=import-error
 class Property:
     """Represents a single purchasable property tile on the MoneyPoly board."""
 
@@ -8,7 +9,6 @@ class Property:
         self.name = name
         self.position = position
         self.economics = economics
-        self.mortgage_value = self.economics.get("price", 0) // 2
         self.owner = None
         self.is_mortgaged = False
         self.buildings = {"houses": 0, "hotel": 0}
@@ -17,6 +17,11 @@ class Property:
         self.group = group
         if group is not None and self not in group.properties:
             group.properties.append(self)
+
+    @property
+    def mortgage_value(self):
+        """Calculate the mortgage value."""
+        return self.economics.get("price", 0) // 2
 
     def get_rent(self):
         """
@@ -47,7 +52,7 @@ class Property:
         """
         if not self.is_mortgaged:
             return 0
-        
+
         cost = int(self.mortgage_value * 1.1)
         self.is_mortgaged = False
         return cost

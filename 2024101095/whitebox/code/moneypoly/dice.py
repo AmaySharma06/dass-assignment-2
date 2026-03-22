@@ -1,4 +1,5 @@
 """Module docstring"""
+# pylint: disable=import-error
 import random
 
 class Dice:

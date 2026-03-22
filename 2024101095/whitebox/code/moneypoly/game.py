@@ -1,4 +1,5 @@
 """Module docstring"""
+# pylint: disable=import-error
 from moneypoly.config import (
     JAIL_FINE,
     AUCTION_MIN_INCREMENT,
@@ -23,9 +24,11 @@ class Game:
         self.bank = Bank()
         self.dice = Dice()
         self.players = [Player(name) for name in player_names]
-        self.current_index = 0
-        self.turn_number = 0
-        self.running = True
+        self.state = {
+            "current_index": 0,
+            "turn_number": 0,
+            "running": True
+        }
         self.decks = {
             "chance": CardDeck(CHANCE_CARDS),
             "community": CardDeck(COMMUNITY_CHEST_CARDS)
@@ -33,18 +36,18 @@ class Game:
 
     def current_player(self):
         """Return the Player whose turn it currently is."""
-        return self.players[self.current_index]
+        return self.players[self.state["current_index"]]
 
     def advance_turn(self):
         """Move to the next player in the rotation."""
-        self.current_index = (self.current_index + 1) % len(self.players)
-        self.turn_number += 1
+        self.state["current_index"] = (self.state["current_index"] + 1) % len(self.players)
+        self.state["turn_number"] += 1
 
     def play_turn(self):
         """Execute one complete turn for the current player."""
         player = self.current_player()
         ui.print_banner(
-            f"Turn {self.turn_number + 1}  |  {player.name}  |  ${player.balance}"
+            f"Turn {self.state["turn_number"] + 1}  |  {player.name}  |  ${player.balance}"
         )
 
         if player.jail_info["in_jail"]:
@@ -300,11 +303,11 @@ class Game:
         player.deduct_money(value)
         self.bank.collect(value)
 
-    def _card_jail(self, player, value):
+    def _card_jail(self, player, _):
         player.go_to_jail()
         print(f"  {player.name} has been sent to Jail!")
 
-    def _card_jail_free(self, player, value):
+    def _card_jail_free(self, player, _):
         player.jail_info["get_out_cards"] += 1
         print(f"  {player.name} now holds a Get Out of Jail Free card.")
 
@@ -359,8 +362,8 @@ class Game:
             player.properties.clear()
             if player in self.players:
                 self.players.remove(player)
-            if self.current_index >= len(self.players):
-                self.current_index = 0
+            if self.state["current_index"] >= len(self.players):
+                self.state["current_index"] = 0
 
     def find_winner(self):
         """Return the player with the highest net worth."""
@@ -375,7 +378,7 @@ class Game:
         for p in self.players:
             print(f"  {p.name} starts with ${p.balance}.")
 
-        while self.running and self.turn_number < MAX_TURNS:
+        while self.state["running"] and self.state["turn_number"] < MAX_TURNS:
             if len(self.players) <= 1:
                 break
             self.play_turn()

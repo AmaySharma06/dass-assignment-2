@@ -1,6 +1,7 @@
 """Module docstring"""
-import sys
-from moneypoly.config import STARTING_BALANCE, GO_SALARY, JAIL_POSITION
+# pylint: disable=import-error
+
+from moneypoly.config import STARTING_BALANCE, GO_SALARY, JAIL_POSITION, BOARD_SIZE
 
 
 class Player:
@@ -45,7 +46,6 @@ class Player:
         Awards the Go salary if the player passes or lands on Go.
         Returns the new board position.
         """
-        old_position = self.position
         self.position = (self.position + steps) % BOARD_SIZE
 
         if self.position == 0:

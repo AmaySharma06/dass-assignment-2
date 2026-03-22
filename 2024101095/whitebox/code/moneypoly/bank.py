@@ -1,4 +1,5 @@
 """Module docstring"""
+# pylint: disable=import-error
 from moneypoly.config import BANK_STARTING_FUNDS
 
 
