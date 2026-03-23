@@ -1,7 +1,7 @@
 # DASS Assignment 2 - 2024101095
 
 Git Repository: `https://github.com/AmaySharma06/dass-assignment-2`
-OneDrive Link: `https://iiithydstudents-my.sharepoint.com/:u:/g/personal/amay_sharma_students_iiit_ac_in/IQBC3JDhTm1bS7OnDcmatGsAAcoMkn5GjFeytohPaeRzFi8?e=6R9D0E`
+
 ## Requirements
 
 - Python 3.10+ (tested on Python 3.12)

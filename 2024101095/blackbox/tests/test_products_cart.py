@@ -5,10 +5,27 @@ from decimal import Decimal
 import pytest
 
 from .conftest import TIMEOUT
-from .helpers import extract_cart_item, extract_list, get_field
+from .helpers import extract_cart_item, extract_list, extract_object, get_field
 
 
 class TestProducts:
+    def test_public_product_price_matches_admin_price(self, session, api_url, admin_headers, user_headers, active_product, server_ready):
+        product_id = active_product["product_id"]
+
+        admin_response = session.get(api_url("/admin/products"), headers=admin_headers, timeout=TIMEOUT)
+        assert admin_response.status_code == 200
+        admin_products = extract_list(admin_response.json(), "products", "data", "items")
+        admin_item = next((p for p in admin_products if get_field(p, "product_id", "id") == product_id), None)
+        assert admin_item is not None
+
+        public_response = session.get(api_url(f"/products/{product_id}"), headers=user_headers, timeout=TIMEOUT)
+        assert public_response.status_code == 200
+        public_item = extract_object(public_response.json(), "product", "data")
+
+        admin_price = Decimal(str(get_field(admin_item, "price", default=0)))
+        public_price = Decimal(str(get_field(public_item, "price", default=0)))
+        assert public_price == admin_price
+
     def test_products_list_excludes_inactive(self, session, api_url, admin_headers, user_headers, server_ready):
         admin_response = session.get(api_url("/admin/products"), headers=admin_headers, timeout=TIMEOUT)
         public_response = session.get(api_url("/products"), headers=user_headers, timeout=TIMEOUT)
@@ -220,6 +237,55 @@ class TestCart:
             timeout=TIMEOUT,
         )
         assert missing_product.status_code == 404
+
+    def test_cart_rejects_quantity_above_available_stock(self, session, api_url, admin_headers, user_headers, active_product, clear_cart, server_ready):
+        product_id = active_product["product_id"]
+
+        admin_response = session.get(api_url("/admin/products"), headers=admin_headers, timeout=TIMEOUT)
+        assert admin_response.status_code == 200
+        products = extract_list(admin_response.json(), "products", "data", "items")
+        product = next((p for p in products if get_field(p, "product_id", "id") == product_id), None)
+        assert product is not None
+
+        raw_stock = get_field(product, "stock", "stock_quantity", "quantity", "inventory", default=None)
+        if raw_stock is None:
+            pytest.skip("Stock quantity field missing for active product")
+
+        stock = int(float(str(raw_stock)))
+        response = session.post(
+            api_url("/cart/add"),
+            json={"product_id": product_id, "quantity": stock + 1},
+            headers=user_headers,
+            timeout=TIMEOUT,
+        )
+        assert response.status_code == 400
+
+    def test_cart_update_rejects_quantity_below_one(self, session, api_url, user_headers, active_product, clear_cart, server_ready):
+        product_id = active_product["product_id"]
+
+        add_response = session.post(
+            api_url("/cart/add"),
+            json={"product_id": product_id, "quantity": 1},
+            headers=user_headers,
+            timeout=TIMEOUT,
+        )
+        assert add_response.status_code in (200, 201)
+
+        update_zero = session.post(
+            api_url("/cart/update"),
+            json={"product_id": product_id, "quantity": 0},
+            headers=user_headers,
+            timeout=TIMEOUT,
+        )
+        assert update_zero.status_code == 400
+
+        update_negative = session.post(
+            api_url("/cart/update"),
+            json={"product_id": product_id, "quantity": -1},
+            headers=user_headers,
+            timeout=TIMEOUT,
+        )
+        assert update_negative.status_code == 400
 
     @pytest.mark.xfail(
         reason="Bug: cart/add accepts missing or wrong-typed quantity in current server build",

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
+from math import ceil
 
 import pytest
 
@@ -124,6 +125,50 @@ class TestCheckout:
         response = session.post(api_url("/checkout"), json={}, headers=user_headers, timeout=TIMEOUT)
         assert response.status_code == 400
 
+    def test_checkout_rejects_cod_when_total_exceeds_5000(self, session, api_url, admin_headers, user_headers, clear_cart, server_ready):
+        admin_response = session.get(api_url("/admin/products"), headers=admin_headers, timeout=TIMEOUT)
+        assert admin_response.status_code == 200
+        products = extract_list(admin_response.json(), "products", "data", "items")
+
+        candidates = []
+        for product in products:
+            if get_field(product, "is_active", "active", default=True) is not True:
+                continue
+            product_id = get_field(product, "product_id", "id")
+            price = get_field(product, "price", default=None)
+            stock = get_field(product, "stock", "stock_quantity", "quantity", "inventory", default=None)
+            if product_id is None or price is None or stock is None:
+                continue
+            try:
+                candidates.append((int(product_id), float(price), int(float(str(stock)))))
+            except (TypeError, ValueError):
+                continue
+
+        if not candidates:
+            pytest.skip("No usable active products with price and stock metadata")
+
+        # Pick the highest-price product to minimize quantity needed for threshold crossing.
+        product_id, price, stock = sorted(candidates, key=lambda x: x[1], reverse=True)[0]
+        needed_qty = ceil(5001 / price)
+        if needed_qty > stock:
+            pytest.skip("Cannot construct cart total >5000 with available stock")
+
+        add_response = session.post(
+            api_url("/cart/add"),
+            json={"product_id": product_id, "quantity": needed_qty},
+            headers=user_headers,
+            timeout=TIMEOUT,
+        )
+        assert add_response.status_code in (200, 201)
+
+        checkout_response = session.post(
+            api_url("/checkout"),
+            json={"payment_method": "COD"},
+            headers=user_headers,
+            timeout=TIMEOUT,
+        )
+        assert checkout_response.status_code == 400
+
 
 class TestWalletAndLoyalty:
     def test_wallet_pay_decreases_balance_by_exact_amount(self, session, api_url, user_headers, server_ready):
@@ -190,6 +235,14 @@ class TestWalletAndLoyalty:
             timeout=TIMEOUT,
         )
         assert pay_too_much.status_code == 400
+
+        pay_zero = session.post(
+            api_url("/wallet/pay"),
+            json={"amount": 0},
+            headers=user_headers,
+            timeout=TIMEOUT,
+        )
+        assert pay_zero.status_code == 400
 
         loyalty_response = session.get(api_url("/loyalty"), headers=user_headers, timeout=TIMEOUT)
         assert loyalty_response.status_code == 200
