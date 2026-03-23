@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from decimal import Decimal
+
 import pytest
 
 from .conftest import TIMEOUT
@@ -49,9 +51,84 @@ class TestProducts:
 
 
 class TestCart:
+    def test_cart_subtotal_must_equal_unit_price_times_quantity(self, session, api_url, user_headers, active_product, clear_cart, server_ready):
+        product_id = active_product["product_id"]
+        unit_price = Decimal(str(active_product["price"]))
+
+        add_response = session.post(
+            api_url("/cart/add"),
+            json={"product_id": product_id, "quantity": 3},
+            headers=user_headers,
+            timeout=TIMEOUT,
+        )
+        assert add_response.status_code in (200, 201)
+
+        cart_response = session.get(api_url("/cart"), headers=user_headers, timeout=TIMEOUT)
+        assert cart_response.status_code == 200
+
+        cart_payload = cart_response.json()
+        item = extract_cart_item(cart_payload, product_id)
+        assert item is not None
+
+        subtotal = Decimal(str(get_field(item, "subtotal")))
+        expected_subtotal = unit_price * Decimal("3")
+        assert subtotal == expected_subtotal
+
+    def test_cart_total_must_equal_sum_of_item_subtotals(self, session, api_url, user_headers, active_products, clear_cart, server_ready):
+        first, second = active_products
+
+        add_first = session.post(
+            api_url("/cart/add"),
+            json={"product_id": first["product_id"], "quantity": 1},
+            headers=user_headers,
+            timeout=TIMEOUT,
+        )
+        add_second = session.post(
+            api_url("/cart/add"),
+            json={"product_id": second["product_id"], "quantity": 1},
+            headers=user_headers,
+            timeout=TIMEOUT,
+        )
+        assert add_first.status_code in (200, 201)
+        assert add_second.status_code in (200, 201)
+
+        cart_response = session.get(api_url("/cart"), headers=user_headers, timeout=TIMEOUT)
+        assert cart_response.status_code == 200
+        payload = cart_response.json()
+
+        items = extract_list(payload, "items", "cart_items")
+        computed_total = sum(Decimal(str(get_field(item, "subtotal", default=0))) for item in items)
+        observed_total = Decimal(str(get_field(payload, "total", "cart_total", default=0)))
+        assert observed_total == computed_total
+
+    def test_cart_total_must_equal_sum_of_expected_unit_prices(self, session, api_url, user_headers, active_products, clear_cart, server_ready):
+        first, second = active_products
+
+        add_first = session.post(
+            api_url("/cart/add"),
+            json={"product_id": first["product_id"], "quantity": 1},
+            headers=user_headers,
+            timeout=TIMEOUT,
+        )
+        add_second = session.post(
+            api_url("/cart/add"),
+            json={"product_id": second["product_id"], "quantity": 1},
+            headers=user_headers,
+            timeout=TIMEOUT,
+        )
+        assert add_first.status_code in (200, 201)
+        assert add_second.status_code in (200, 201)
+
+        cart_response = session.get(api_url("/cart"), headers=user_headers, timeout=TIMEOUT)
+        assert cart_response.status_code == 200
+        payload = cart_response.json()
+
+        expected_total = Decimal(str(first["price"])) + Decimal(str(second["price"]))
+        observed_total = Decimal(str(get_field(payload, "total", "cart_total", default=0)))
+        assert observed_total == expected_total
+
     def test_cart_add_update_remove_and_clear(self, session, api_url, user_headers, active_product, clear_cart, server_ready):
         product_id = active_product["product_id"]
-        unit_price = active_product["price"]
 
         add_once = session.post(
             api_url("/cart/add"),
@@ -76,7 +153,6 @@ class TestCart:
         item = extract_cart_item(cart_payload, product_id)
         assert item is not None
         assert get_field(item, "quantity") == 3
-        assert float(get_field(item, "subtotal", default=unit_price * 3)) == pytest.approx(unit_price * 3)
 
         update_response = session.post(
             api_url("/cart/update"),
@@ -118,15 +194,8 @@ class TestCart:
         cart_response = session.get(api_url("/cart"), headers=user_headers, timeout=TIMEOUT)
         assert cart_response.status_code == 200
         payload = cart_response.json()
+        assert get_field(payload, "total", "cart_total") is not None
 
-        expected_total = first["price"] + second["price"]
-        observed_total = float(get_field(payload, "total", "cart_total", default=expected_total))
-        assert observed_total == pytest.approx(expected_total, rel=1e-3)
-
-    @pytest.mark.xfail(
-        reason="Bug: cart/add accepts zero or negative quantity in current server build",
-        strict=False,
-    )
     def test_cart_rejects_invalid_quantity_and_missing_product(self, session, api_url, user_headers, clear_cart, server_ready):
         invalid_zero = session.post(
             api_url("/cart/add"),

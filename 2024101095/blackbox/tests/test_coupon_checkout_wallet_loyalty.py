@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from decimal import Decimal
 
 import pytest
 
@@ -59,6 +60,45 @@ class TestCoupons:
 
 
 class TestCheckout:
+    def test_card_checkout_applies_exact_five_percent_gst(self, session, api_url, user_headers, active_product, clear_cart, server_ready):
+        add_response = session.post(
+            api_url("/cart/add"),
+            json={"product_id": active_product["product_id"], "quantity": 1},
+            headers=user_headers,
+            timeout=TIMEOUT,
+        )
+        assert add_response.status_code in (200, 201)
+
+        cart_response = session.get(api_url("/cart"), headers=user_headers, timeout=TIMEOUT)
+        assert cart_response.status_code == 200
+        cart_payload = cart_response.json()
+        subtotal = Decimal(str(get_field(cart_payload, "subtotal", "cart_subtotal", default=active_product["price"])))
+
+        checkout_response = session.post(
+            api_url("/checkout"),
+            json={"payment_method": "CARD"},
+            headers=user_headers,
+            timeout=TIMEOUT,
+        )
+        assert checkout_response.status_code in (200, 201)
+        checkout_payload = checkout_response.json()
+
+        order = extract_object(checkout_payload, "order", "data")
+        gst_value = get_field(order, "gst", "gst_amount", "tax", "tax_amount", default=None)
+        if gst_value is None:
+            gst_value = get_field(checkout_payload, "gst", "gst_amount", "tax", "tax_amount", default=None)
+
+        if gst_value is None:
+            total_value = get_field(order, "total", "grand_total", default=None)
+            if total_value is None:
+                total_value = get_field(checkout_payload, "total", "total_amount", default=None)
+            assert total_value is not None
+            applied_gst = Decimal(str(total_value)) - subtotal
+        else:
+            applied_gst = Decimal(str(gst_value))
+
+        assert applied_gst == subtotal * Decimal("0.05")
+
     @pytest.mark.xfail(
         reason="Bug: checkout with empty cart returns 200 instead of 400 in current server build",
         strict=False,
@@ -86,6 +126,40 @@ class TestCheckout:
 
 
 class TestWalletAndLoyalty:
+    def test_wallet_pay_decreases_balance_by_exact_amount(self, session, api_url, user_headers, server_ready):
+        before_response = session.get(api_url("/wallet"), headers=user_headers, timeout=TIMEOUT)
+        assert before_response.status_code == 200
+        before_payload = extract_object(before_response.json(), "wallet", "data")
+        before_balance = float(get_field(before_payload, "balance", "wallet_balance", default=0.0))
+
+        if before_balance < 100.0:
+            top_up_response = session.post(
+                api_url("/wallet/add"),
+                json={"amount": 150},
+                headers=user_headers,
+                timeout=TIMEOUT,
+            )
+            assert top_up_response.status_code in (200, 201)
+            before_response = session.get(api_url("/wallet"), headers=user_headers, timeout=TIMEOUT)
+            assert before_response.status_code == 200
+            before_payload = extract_object(before_response.json(), "wallet", "data")
+            before_balance = float(get_field(before_payload, "balance", "wallet_balance", default=0.0))
+
+        pay_response = session.post(
+            api_url("/wallet/pay"),
+            json={"amount": 100},
+            headers=user_headers,
+            timeout=TIMEOUT,
+        )
+        assert pay_response.status_code in (200, 201)
+
+        after_response = session.get(api_url("/wallet"), headers=user_headers, timeout=TIMEOUT)
+        assert after_response.status_code == 200
+        after_payload = extract_object(after_response.json(), "wallet", "data")
+        after_balance = float(get_field(after_payload, "balance", "wallet_balance", default=0.0))
+
+        assert before_balance - after_balance == 100.0
+
     def test_wallet_and_loyalty_validation(self, session, api_url, user_headers, server_ready):
         wallet_response = session.get(api_url("/wallet"), headers=user_headers, timeout=TIMEOUT)
         assert wallet_response.status_code == 200

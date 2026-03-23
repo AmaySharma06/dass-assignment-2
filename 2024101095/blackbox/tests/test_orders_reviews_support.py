@@ -3,10 +3,70 @@ from __future__ import annotations
 from uuid import uuid4
 
 from .conftest import TIMEOUT
-from .helpers import extract_object, get_field
+from .helpers import extract_list, extract_object, get_field
+
+
+def _read_stock(products_payload, product_id: int):
+    products = extract_list(products_payload, "products", "data", "items")
+    for product in products:
+        pid = get_field(product, "product_id", "id")
+        if pid == product_id:
+            return get_field(product, "stock", "stock_quantity", "quantity", "inventory", default=None)
+    return None
 
 
 class TestOrders:
+    def test_cancel_order_restores_product_stock(self, session, api_url, admin_headers, user_headers, active_product, clear_cart, server_ready):
+        product_id = active_product["product_id"]
+
+        before_products = session.get(api_url("/admin/products"), headers=admin_headers, timeout=TIMEOUT)
+        assert before_products.status_code == 200
+        stock_before = _read_stock(before_products.json(), product_id)
+        assert stock_before is not None
+
+        add_response = session.post(
+            api_url("/cart/add"),
+            json={"product_id": product_id, "quantity": 1},
+            headers=user_headers,
+            timeout=TIMEOUT,
+        )
+        assert add_response.status_code in (200, 201)
+
+        checkout_response = session.post(
+            api_url("/checkout"),
+            json={"payment_method": "COD"},
+            headers=user_headers,
+            timeout=TIMEOUT,
+        )
+        assert checkout_response.status_code in (200, 201)
+
+        checkout_payload = checkout_response.json()
+        order_id = get_field(checkout_payload, "order_id")
+        if order_id is None:
+            order = extract_object(checkout_payload, "order", "data")
+            order_id = get_field(order, "order_id", "id")
+        assert order_id is not None
+
+        after_checkout_products = session.get(api_url("/admin/products"), headers=admin_headers, timeout=TIMEOUT)
+        assert after_checkout_products.status_code == 200
+        stock_after_checkout = _read_stock(after_checkout_products.json(), product_id)
+        assert stock_after_checkout is not None
+
+        cancel_response = session.post(
+            api_url(f"/orders/{order_id}/cancel"),
+            headers=user_headers,
+            timeout=TIMEOUT,
+        )
+        assert cancel_response.status_code in (200, 201)
+
+        after_cancel_products = session.get(api_url("/admin/products"), headers=admin_headers, timeout=TIMEOUT)
+        assert after_cancel_products.status_code == 200
+        stock_after_cancel = _read_stock(after_cancel_products.json(), product_id)
+        assert stock_after_cancel is not None
+
+        assert int(stock_after_checkout) == int(stock_before) - 1
+        assert int(stock_after_cancel) == int(stock_before)
+
     def test_orders_list_and_missing_cancel(self, session, api_url, user_headers, server_ready):
         orders_response = session.get(api_url("/orders"), headers=user_headers, timeout=TIMEOUT)
         assert orders_response.status_code == 200
@@ -28,6 +88,17 @@ class TestOrders:
 
 
 class TestReviews:
+    def test_reviews_reject_out_of_range_ratings(self, session, api_url, user_headers, active_product, server_ready):
+        product_id = active_product["product_id"]
+        for rating in (0, -1, 6):
+            response = session.post(
+                api_url(f"/products/{product_id}/reviews"),
+                json={"rating": rating, "comment": f"invalid rating {rating}"},
+                headers=user_headers,
+                timeout=TIMEOUT,
+            )
+            assert response.status_code == 400
+
     def test_reviews_reject_invalid_rating(self, session, api_url, user_headers, active_product, server_ready):
         response = session.post(
             api_url(f"/products/{active_product['product_id']}/reviews"),
@@ -57,6 +128,38 @@ class TestReviews:
 
 
 class TestSupportTickets:
+    def test_support_ticket_preserves_percent_character_on_fetch(self, session, api_url, user_headers, server_ready):
+        subject = f"Special chars {uuid4().hex[:8]}"
+        message = "@#$%"
+
+        create_response = session.post(
+            api_url("/support/ticket"),
+            json={"subject": subject, "message": message},
+            headers=user_headers,
+            timeout=TIMEOUT,
+        )
+        assert create_response.status_code in (200, 201)
+
+        created_payload = create_response.json()
+        ticket_id = get_field(created_payload, "ticket_id")
+        if ticket_id is None:
+            ticket = extract_object(created_payload, "ticket", "data")
+            ticket_id = get_field(ticket, "ticket_id", "id")
+        assert ticket_id is not None
+
+        fetch_response = session.get(api_url("/support/tickets"), headers=user_headers, timeout=TIMEOUT)
+        assert fetch_response.status_code == 200
+        tickets = extract_list(fetch_response.json(), "tickets", "data", "items")
+
+        matched = None
+        for ticket in tickets:
+            if get_field(ticket, "ticket_id", "id") == ticket_id:
+                matched = ticket
+                break
+
+        assert matched is not None
+        assert "%" in str(get_field(matched, "message"))
+
     def test_support_ticket_lifecycle(self, session, api_url, user_headers, server_ready):
         suffix = uuid4().hex[:8]
         subject = f"Order issue {suffix}"

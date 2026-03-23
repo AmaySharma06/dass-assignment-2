@@ -33,10 +33,15 @@ class TestProfile:
         )
         assert response.status_code == 400
 
-    @pytest.mark.xfail(
-        reason="Bug: profile update accepts non-digit phone values in current server build",
-        strict=False,
-    )
+    def test_profile_rejects_alphabetic_phone(self, session, api_url, user_headers, server_ready):
+        response = session.put(
+            api_url("/profile"),
+            json={"name": "Valid Name", "phone": "abcdefghij"},
+            headers=user_headers,
+            timeout=TIMEOUT,
+        )
+        assert response.status_code == 400
+
     def test_profile_rejects_non_digit_phone(self, session, api_url, user_headers, server_ready):
         response = session.put(
             api_url("/profile"),
@@ -48,6 +53,35 @@ class TestProfile:
 
 
 class TestAddresses:
+    def test_pincode_validation_accepts_500001_and_rejects_12345(self, session, api_url, user_headers, server_ready):
+        suffix = uuid4().hex[:8]
+        valid_payload = {
+            "label": "HOME",
+            "street": f"{suffix} Valid Street",
+            "city": "Hyderabad",
+            "pincode": "500001",
+            "is_default": False,
+        }
+        invalid_payload = {
+            "label": "HOME",
+            "street": f"{suffix} Invalid Street",
+            "city": "Hyderabad",
+            "pincode": "12345",
+            "is_default": False,
+        }
+
+        valid_response = session.post(api_url("/addresses"), json=valid_payload, headers=user_headers, timeout=TIMEOUT)
+        invalid_response = session.post(api_url("/addresses"), json=invalid_payload, headers=user_headers, timeout=TIMEOUT)
+
+        assert valid_response.status_code in (200, 201)
+        assert invalid_response.status_code == 400
+
+        if valid_response.status_code in (200, 201):
+            created = extract_object(valid_response.json(), "address", "data")
+            address_id = get_field(created, "address_id", "id")
+            if address_id is not None:
+                session.delete(api_url(f"/addresses/{address_id}"), headers=user_headers, timeout=TIMEOUT)
+
     def test_create_address_rejects_missing_required_field(self, session, api_url, user_headers, server_ready):
         response = session.post(
             api_url("/addresses"),

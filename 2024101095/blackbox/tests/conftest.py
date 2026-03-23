@@ -15,6 +15,16 @@ ROLL_NUMBER = os.getenv("QUICKCART_ROLL_NUMBER", "2024101095")
 TIMEOUT = int(os.getenv("QUICKCART_TIMEOUT", "10"))
 
 
+def _stock_value(product: dict) -> int | None:
+    raw = get_field(product, "stock", "stock_quantity", "quantity", "inventory", default=None)
+    if raw is None:
+        return None
+    try:
+        return int(float(str(raw)))
+    except (TypeError, ValueError):
+        return None
+
+
 @pytest.fixture(scope="session")
 def api_url():
     def _api_url(path: str) -> str:
@@ -82,8 +92,8 @@ def active_product(session: requests.Session, api_url, admin_headers, server_rea
     for product in products:
         product_id = get_field(product, "product_id", "id")
         is_active = get_field(product, "is_active", "active", default=True)
-        stock = get_field(product, "stock", "quantity", "inventory", default=0)
-        if product_id and is_active and isinstance(stock, int) and stock > 0:
+        stock = _stock_value(product)
+        if product_id and is_active and stock is not None and stock > 0:
             return {
                 "product_id": product_id,
                 "price": float(get_field(product, "price", default=0.0)),
@@ -102,8 +112,8 @@ def active_products(session: requests.Session, api_url, admin_headers, server_re
     for product in products:
         product_id = get_field(product, "product_id", "id")
         is_active = get_field(product, "is_active", "active", default=True)
-        stock = get_field(product, "stock", "quantity", "inventory", default=0)
-        if product_id and is_active and isinstance(stock, int) and stock > 0:
+        stock = _stock_value(product)
+        if product_id and is_active and stock is not None and stock > 0:
             out.append(
                 {
                     "product_id": product_id,
