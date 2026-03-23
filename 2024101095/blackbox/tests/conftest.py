@@ -11,7 +11,7 @@ from .helpers import extract_list, extract_object, get_field
 
 BASE_URL = os.getenv("QUICKCART_BASE_URL", "http://localhost:8080").rstrip("/")
 API_BASE = f"{BASE_URL}/api/v1"
-ROLL_NUMBER = os.getenv("QUICKCART_ROLL_NUMBER", "1")
+ROLL_NUMBER = os.getenv("QUICKCART_ROLL_NUMBER", "2024101095")
 TIMEOUT = int(os.getenv("QUICKCART_TIMEOUT", "10"))
 
 
