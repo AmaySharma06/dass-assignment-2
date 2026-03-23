@@ -1,7 +1,8 @@
+"""Module docstring"""
 from moneypoly.game import Game
 
-
 def get_player_names():
+    """Func docstring 1"""
     print("Enter player names separated by commas (minimum 2 players):")
     raw = input("> ").strip()
     names = [n.strip() for n in raw.split(",") if n.strip()]
@@ -9,6 +10,7 @@ def get_player_names():
 
 
 def main():
+    """Func docstring 2"""
     names = get_player_names()
     try:
         game = Game(names)
