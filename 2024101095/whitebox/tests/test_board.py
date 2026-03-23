@@ -10,9 +10,9 @@ from moneypoly.config import (
 class TestBoardInit:
     """Test board initialization."""
 
-    def test_has_22_properties(self):
+    def test_has_26_properties(self):
         b = Board()
-        assert len(b.properties) == 22
+        assert len(b.properties) == 26
 
     def test_has_8_groups(self):
         b = Board()
@@ -91,6 +91,12 @@ class TestBoardPropertyLookup:
         b = Board()
         assert b.get_property_at(0) is None  # Go is not a property
 
+    def test_get_property_at_railroad_is_instantiated(self):
+        b = Board()
+        railroad = b.get_property_at(5)
+        assert railroad is not None
+        assert railroad.position == 5
+
     def test_is_purchasable_unowned(self):
         b = Board()
         assert b.is_purchasable(1)
@@ -131,9 +137,9 @@ class TestBoardOwnership:
 
     def test_unowned_properties(self):
         b = Board()
-        assert len(b.unowned_properties()) == 22
+        assert len(b.unowned_properties()) == 26
         b.properties[0].owner = Player("Alice")
-        assert len(b.unowned_properties()) == 21
+        assert len(b.unowned_properties()) == 25
 
     def test_repr(self):
         b = Board()

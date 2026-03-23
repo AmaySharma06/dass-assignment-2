@@ -85,6 +85,14 @@ class TestCardDeckMisc:
         deck = CardDeck(CHANCE_CARDS)
         assert "CardDeck" in repr(deck)
 
+    def test_empty_deck_cards_remaining_is_safe(self):
+        deck = CardDeck([])
+        assert deck.cards_remaining() == 0
+
+    def test_empty_deck_repr_is_safe(self):
+        deck = CardDeck([])
+        assert repr(deck) == "CardDeck(0 cards)"
+
 
 class TestCardData:
     """Test card data validity."""

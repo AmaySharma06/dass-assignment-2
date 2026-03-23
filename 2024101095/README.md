@@ -1,6 +1,6 @@
 # DASS Assignment 2 - 2024101095
 
-Git Repository: `git@github.com:AmaySharma06/dass-assignment-2.git`
+Git Repository: `https://github.com/AmaySharma06/dass-assignment-2`
 
 ## Requirements
 

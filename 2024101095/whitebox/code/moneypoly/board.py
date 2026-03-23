@@ -69,11 +69,13 @@ class Board:
             Property(
                 "Connecticut Avenue", 9, {"price": 120, "base_rent": 8}, g["light_blue"]
             ),
+            Property("Reading Railroad", 5, {"price": 200, "base_rent": 25}),
             Property(
                 "St. Charles Place", 11, {"price": 140, "base_rent": 10}, g["pink"]
             ),
             Property("States Avenue", 13, {"price": 140, "base_rent": 10}, g["pink"]),
             Property("Virginia Avenue", 14, {"price": 160, "base_rent": 12}, g["pink"]),
+            Property("Pennsylvania Railroad", 15, {"price": 200, "base_rent": 25}),
             Property(
                 "St. James Place", 16, {"price": 180, "base_rent": 14}, g["orange"]
             ),
@@ -86,6 +88,7 @@ class Board:
             Property("Kentucky Avenue", 21, {"price": 220, "base_rent": 18}, g["red"]),
             Property("Indiana Avenue", 23, {"price": 220, "base_rent": 18}, g["red"]),
             Property("Illinois Avenue", 24, {"price": 240, "base_rent": 20}, g["red"]),
+            Property("B. & O. Railroad", 25, {"price": 200, "base_rent": 25}),
             Property(
                 "Atlantic Avenue", 26, {"price": 260, "base_rent": 22}, g["yellow"]
             ),
@@ -102,6 +105,7 @@ class Board:
             Property(
                 "Pennsylvania Avenue", 34, {"price": 320, "base_rent": 28}, g["green"]
             ),
+            Property("Short Line", 35, {"price": 200, "base_rent": 25}),
             Property("Park Place", 37, {"price": 350, "base_rent": 35}, g["dark_blue"]),
             Property("Boardwalk", 39, {"price": 400, "base_rent": 50}, g["dark_blue"]),
         ]
